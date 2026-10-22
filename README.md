@@ -21,6 +21,12 @@ The URL becomes live after GitHub Pages is enabled for the repository and the de
 
 This is an intentionally limited vertical slice, not a finished AAA game. Combat uses simplified range/direction checks rather than physical projectile simulation; NPCs and traffic use lightweight movement rather than full pathfinding; no full skeletal animation, interior streaming, real police vehicle pursuit, multiplayer, or professional audio/asset production is included yet.
 
+## Reference-guided upgrade roadmap
+
+The game now has a focused, license-aware roadmap based on two browser-game references: [Courier City](https://github.com/shubhransh-gupta/courier-city) (MIT, suitable for carefully attributed adaptations) and [GTA Clone / Open City](https://github.com/25nyak/Gta-Clone) (design reference only unless its owner provides a reusable license). The plan prioritizes licensed character/vehicle models, less blocky world presentation, physics behind an adapter, road-graph traffic, police pursuit states, reusable missions, performance limits and browser verification.
+
+Read [docs/REFERENCE_GUIDED_UPGRADE_PLAN.md](docs/REFERENCE_GUIDED_UPGRADE_PLAN.md) for the phased implementation plan and [docs/OPEN_SOURCE_RESEARCH.md](docs/OPEN_SOURCE_RESEARCH.md) for licensing and integration rules. These documents distinguish current implemented features from planned work; they do not claim the roadmap systems or external assets are already in the game.
+
 ## Requirements
 
 - Node.js 22 recommended
