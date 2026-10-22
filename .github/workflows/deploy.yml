@@ -36,6 +36,13 @@ jobs:
         run: npm run build
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+      - name: Verify production output
+        run: |
+          test -s dist/index.html
+          grep -q '/open-world/assets/' dist/index.html
+          if grep -q '/src/main.ts' dist/index.html; then echo 'ERROR: source HTML was not transformed by Vite'; exit 1; fi
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.js' -print -quit)"
+          test -n "$(find dist/assets -maxdepth 1 -type f -name '*.css' -print -quit)"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
