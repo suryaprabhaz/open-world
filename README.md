@@ -113,3 +113,10 @@ The game scene and visible geometry are generated in code; the interface loads o
 ## Credits
 
 Original project implementation and opening credit: **@SuryaPrabhas**.
+
+
+## Open-source reference and asset policy
+
+The project studies compatible systems from [Courier City](https://github.com/shubhransh-gupta/courier-city), the [Rapier physics engine](https://rapier.rs/docs/), and selected [Kenney asset packs](https://kenney.nl/assets). References do not mean their code, physics, or models have automatically been integrated. This build currently uses its original Three.js scene and simple custom movement/collision logic; a dedicated Rapier integration and imported 3D asset packs remain separate tasks. Only import assets after checking that exact pack's licence and retaining any required notices.
+
+See [the open-source integration notes](docs/OPEN_SOURCE_RESEARCH.md).
