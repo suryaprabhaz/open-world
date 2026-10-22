@@ -355,7 +355,7 @@ function fire(){
  mag--;shootCooldown=.22;
  const target=peds.filter(p=>p.health>0&&dist2(p.g.position,player.position)<32).sort((a,b)=>dist2(a.g.position,player.position)-dist2(b.g.position,player.position))[0];
  if(target){
-  const to=target.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,-Math.cos(player.rotation.y));
+  const to=target.g.position.clone().sub(player.position);const facing=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));
   if(to.normalize().dot(facing)>.25){
    target.health=Math.max(0,target.health-35);target.flee=3.8;wanted=Math.min(5,wanted+1);toast(target.health===0?'TARGET DOWN — POLICE ALERT':'HIT CONFIRMED — CITIZENS PANIC');
   }else toast('SHOT MISSED — LINE UP YOUR AIM');
