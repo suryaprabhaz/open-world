@@ -75,12 +75,46 @@ function building(x:number,z:number,w:number,d:number,h:number,seed:number){
   box(g,[Math.min(1.4,w/cols*0.6),0.075,0.10],balcony,[wx,wy-0.62,d/2+0.04],false,false);
   if(seed%4===0)box(g,[Math.min(1.3,w/cols*0.56),0.04,0.04],trim,[wx,wy,d/2+0.055],false,false);
  }
- // Side windows
+ // Side windows on both visible sides and the rear create a more finished, less bare-box silhouette.
  for(let f=0;f<floors;f++)for(let c=0;c<Math.max(1,Math.floor(d/3));c++){
   const wz=-d/2+(c+0.5)*d/Math.max(1,Math.floor(d/3));
-  if(f%2===0)box(g,[0.035,1.05,Math.min(1.4,d/4) ],dark,[w/2+0.02,1.2+f*2.5,wz],false,false);
+  if(f%2===0){
+   box(g,[0.035,1.05,Math.min(1.4,d/4)],dark,[w/2+0.02,1.2+f*2.5,wz],false,false);
+   box(g,[0.035,1.05,Math.min(1.4,d/4)],dark,[-w/2-0.02,1.2+f*2.5,wz],false,false);
+  }
  }
- if(h>16){box(g,[w*0.65,0.15,d*0.65],trim,[0,h+0.22,0]); if(seed%2===0)box(g,[w*.36, Math.min(h*.32,13),d*.38],wall,[0,h+5,0]);}
+ for(let f=0;f<floors;f++)for(let c=0;c<Math.max(1,Math.floor(w/3.2));c++){
+  const wx=-w/2+(c+.5)*w/Math.max(1,Math.floor(w/3.2));
+  if(f%2===0&&seed%2===1)box(g,[Math.min(1.25,w/4),1.02,.035],dark,[wx,1.2+f*2.5,-d/2-.02],false,false);
+ }
+ // Selected buildings get real balcony depth, slab edges and rails rather than flat window decals.
+ if(seed%3===1&&h>12){
+  const balconyMetal=mat(0x53666a,.48,.52);
+  for(let f=1;f<floors;f+=2)for(let c=0;c<Math.min(cols,4);c++){
+   const wx=-w/2+(c+.5)*w/cols,wy=1.15+f*2.5;
+   if(wy>h-1)continue;
+   const bw=Math.min(1.55,w/cols*.78);
+   box(g,[bw,.09,.48],trim,[wx,wy-.63,d/2+.22],false,false);
+   box(g,[bw,.055,.055],balconyMetal,[wx,wy-.28,d/2+.43],false,false);
+   for(const side of [-1,1])box(g,[.045,.34,.045],balconyMetal,[wx+side*bw/2,wy-.45,d/2+.43],false,false);
+  }
+ }
+ if(h>16){
+  box(g,[w*.65,.15,d*.65],trim,[0,h+.22,0]);
+  if(seed%2===0)box(g,[w*.36,Math.min(h*.32,13),d*.38],wall,[0,h+5,0]);
+  // Rooftop utility equipment and aerials break up repeated rooflines.
+  const utility=mat(0x606b6a,.72,.12);
+  for(let r=0;r<1+seed%3;r++){
+   const unit=new THREE.Mesh(new THREE.BoxGeometry(1.1,.72,.9),utility);
+   unit.position.set(-w*.28+r*w*.28,h+.62,-d*.18);unit.castShadow=true;g.add(unit);
+   box(g,[.55,.05,.48],chrome,[unit.position.x,h+1.01,unit.position.z],false,false);
+  }
+  if(seed%2===0){
+   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.035,.055,2.4,6),balconyMetal);
+   mast.position.set(w*.28,h+1.3,d*.2);g.add(mast);
+   for(let a=0;a<3;a++)box(g,[.8,.035,.035],balconyMetal,[w*.28,h+.75+a*.35,d*.2],false,false);
+  }
+ }
  // Shop awnings at street level
  if(seed%3===0){box(g,[w*.8,.16,1.0],mat([0xd78f6d,0x4b8c88,0xb5a16a][seed%3]),[0,2.7,d/2+.55],false,false);box(g,[w*.72,1.8,.04],dark,[0,1.3,d/2+.035],false,false);}
 }
