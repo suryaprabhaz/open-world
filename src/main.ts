@@ -103,16 +103,16 @@ function building(x:number,z:number,w:number,d:number,h:number,seed:number){
   box(g,[w*.65,.15,d*.65],trim,[0,h+.22,0]);
   if(seed%2===0)box(g,[w*.36,Math.min(h*.32,13),d*.38],wall,[0,h+5,0]);
   // Rooftop utility equipment and aerials break up repeated rooflines.
-  const utility=mat(0x606b6a,.72,.12);
+  const utility=mat(0x606b6a,.72,.12),roofMetal=mat(0x53666a,.48,.52);
   for(let r=0;r<1+seed%3;r++){
    const unit=new THREE.Mesh(new THREE.BoxGeometry(1.1,.72,.9),utility);
    unit.position.set(-w*.28+r*w*.28,h+.62,-d*.18);unit.castShadow=true;g.add(unit);
-   box(g,[.55,.05,.48],chrome,[unit.position.x,h+1.01,unit.position.z],false,false);
+   box(g,[.55,.05,.48],roofMetal,[unit.position.x,h+1.01,unit.position.z],false,false);
   }
   if(seed%2===0){
-   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.035,.055,2.4,6),balconyMetal);
+   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.035,.055,2.4,6),roofMetal);
    mast.position.set(w*.28,h+1.3,d*.2);g.add(mast);
-   for(let a=0;a<3;a++)box(g,[.8,.035,.035],balconyMetal,[w*.28,h+.75+a*.35,d*.2],false,false);
+   for(let a=0;a<3;a++)box(g,[.8,.035,.035],roofMetal,[w*.28,h+.75+a*.35,d*.2],false,false);
   }
  }
  // Shop awnings at street level
