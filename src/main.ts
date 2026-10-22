@@ -212,12 +212,13 @@ const sculptedBody = new THREE.Mesh(
 );
 sculptedBody.position.set(0,.28,-1.86);
 sculptedBody.castShadow=true;sculptedBody.receiveShadow=true;vehicle.add(sculptedBody);
+const bodyChrome=mat(0xa8b7b8,.32,.78);
 for(const z of [-1.25,1.25]){
- const bumper=new THREE.Mesh(new THREE.BoxGeometry(1.85,.13,.12),chrome);
+ const bumper=new THREE.Mesh(new THREE.BoxGeometry(1.85,.13,.12),bodyChrome);
  bumper.position.set(0,.43,z);vehicle.add(bumper);
 }
 for(const x of [-.55,.55]){
- const hoodLine=new THREE.Mesh(new THREE.BoxGeometry(.025,.012,1.0),chrome);
+ const hoodLine=new THREE.Mesh(new THREE.BoxGeometry(.025,.012,1.0),bodyChrome);
  hoodLine.position.set(x,.92,-1.43);vehicle.add(hoodLine);
 }
 
@@ -538,7 +539,8 @@ function update(dt:number){
   const distance=delta.length();
   if(distance>0.01){
    const desiredYaw=Math.atan2(delta.x,delta.z);
-   policeCar.rotation.y=THREE.MathUtils.dampAngle(policeCar.rotation.y,desiredYaw,2.8,dt);
+   const yawDelta=Math.atan2(Math.sin(desiredYaw-policeCar.rotation.y),Math.cos(desiredYaw-policeCar.rotation.y));
+   policeCar.rotation.y+=yawDelta*(1-Math.exp(-2.8*dt));
    const pursuitSpeed=7.5+wanted*1.35;
    policeCar.position.addScaledVector(new THREE.Vector3(Math.sin(policeCar.rotation.y),0,Math.cos(policeCar.rotation.y)),pursuitSpeed*dt);
    policeCar.position.x=THREE.MathUtils.clamp(policeCar.position.x,-128,128);
