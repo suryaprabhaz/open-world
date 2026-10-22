@@ -259,6 +259,7 @@ function down(a:Act){return acts.has(a)||({forward:keys.has('KeyW')||keys.has('A
 function dist2(a:THREE.Vector3,b:THREE.Vector3){return a.distanceTo(b);}
 function interact(){
  if(mode!=='playing')return;
+ if(!missionActive&&!missionDone&&dist2(player.position,new THREE.Vector3(-41,0,-40))<9){startMission();return;}
  if(driving){driving=false;player.position.copy(vehicle.position).add(new THREE.Vector3(2,0,0).applyAxisAngle(new THREE.Vector3(0,1,0),vehicle.rotation.y));player.rotation.y=vehicle.rotation.y;speedCar*=.45;toast('EXITED VEHICLE');return;}
  if(dist2(player.position,vehicle.position)<4.4){driving=true;toast('VEHICLE ACQUIRED — DRIVE CAREFULLY');return;}
  if(!missionActive&&!missionDone&&dist2(player.position,new THREE.Vector3(-41,0,-40))<8){startMission();return;}
@@ -268,7 +269,7 @@ function interact(){
  toast('NOTHING TO INTERACT WITH HERE.');
 }
 function contextAction(){
- if(!missionActive&&!missionDone)startMission();
+ if(!missionActive&&!missionDone&&dist2(player.position,new THREE.Vector3(-41,0,-40))<9)startMission();
  else if(missionActive&&missionStage===1&&dist2(player.position,new THREE.Vector3(18,0,-98))<10){missionStage=2;toast('PACKAGE SECURED. GET BACK TO THE DOCKS.');refreshHUD();}
  else if(missionActive&&missionStage===2&&dist2(player.position,new THREE.Vector3(-41,0,-40))<10){missionActive=false;missionDone=true;money+=750;toast('CONTRACT COMPLETE · +$750');save();refreshHUD();}
  else toast('NO AVAILABLE ACTION HERE.');
