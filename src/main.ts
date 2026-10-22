@@ -297,7 +297,7 @@ function refreshHUD(){
  el('hint').innerHTML=driving?'PRESS <b>E</b> TO EXIT &nbsp; · &nbsp; <b>W A S D</b> DRIVE &nbsp; · &nbsp; <b>SPACE</b> BRAKE':'PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> CONTRACT';
  el('crosshair').classList.toggle('hidden',!fireHeld&&!keys.has('KeyK'));
 }
-let saveTimer=0,policeTimer=0,refreshTimer=0;
+let saveTimer=0,policeTimer=0,refreshTimer=0,fireWasHeld=false;
 function update(dt:number){
  clock+=dt;shootCooldown=Math.max(0,shootCooldown-dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)el('toast').classList.remove('show');}
  if(mode!=='playing')return;
@@ -332,7 +332,8 @@ function update(dt:number){
   const walking=inputLen>.1;const swing=walking?Math.sin(clock*(down('sprint')?13:8))*.48:0;
   legL.rotation.x=swing;legR.rotation.x=-swing;armL.rotation.x=-swing*.8;armR.rotation.x=swing*.8;
  }
- if(down('fire')||fireHeld)fire();
+ if((down('fire')||fireHeld)&&!fireWasHeld)fire();
+ fireWasHeld=down('fire')||fireHeld;
  // Civilians meander, flee from the player/weapon, and recover after panic.
  for(const p of peds){
   if(p.health<=0){p.g.rotation.z=THREE.MathUtils.damp(p.g.rotation.z,Math.PI/2,2,dt);continue;}
