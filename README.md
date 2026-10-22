@@ -92,6 +92,10 @@ package.json
 
 The game uses localStorage in the current browser profile. Save data is not a cloud backup and will not synchronize across browsers or devices. Clearing site data deletes local progress. No API keys or backend credentials are required.
 
+## Open-source research and licensing
+
+See [docs/OPEN_SOURCE_RESEARCH.md](docs/OPEN_SOURCE_RESEARCH.md) for the reviewed open-source game references, candidate physics engine, asset libraries, and the licensing rules for future integrations.
+
 ## Asset and licensing notes
 
 The game scene and visible geometry are generated in code; the interface loads optional Google Fonts from their public font service. Replace or self-host typography and add licensed models, textures, sound, and animation as the project grows. Do not add ripped game assets, commercial soundtrack recordings, or other unlicensed content.
