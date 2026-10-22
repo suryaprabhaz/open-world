@@ -161,7 +161,7 @@ for(let i=0;i<8;i++){
  traffic.push({g,speed:4.5+i%3,axis,sign,phase:i});
 }
 
-const keys=new Set<string>();const acts=new Set<Act>();let mode:Mode='menu';let driving=false,health=100,armor=50,money=1250,wanted=0,ammo=36,mag=12,weapon='SIDEARM',shootCooldown=0,missionStage=0,missionActive=false,missionDone=false, toastTime=0,clock=0,dayTime=.27, speedCar=0, velocity=new THREE.Vector3(),jumpV=0,onGround=true,fireHeld=false,dead=false;
+const keys=new Set<string>();const acts=new Set<Act>();let mode:Mode='menu';let driving=false,health=100,armor=50,money=1250,wanted=0,ammo=36,mag=12,weapon='SIDEARM',shootCooldown=0,missionStage=0,missionActive=false,missionDone=false, toastTime=0,clock=0,dayTime=.27, speedCar=0, velocity=new THREE.Vector3(),jumpV=0,onGround=true,fireHeld=false,dead=false,nitro=100,vehicleHealth=100,collisionCooldown=0;
 const saveKey='coastal-outlaws-save-v1';
 function toast(s:string){const e=document.querySelector<HTMLDivElement>('#toast');if(e){e.textContent=s;e.classList.add('show');toastTime=2.5;}}
 function save(){
@@ -181,11 +181,11 @@ function restore(){
 const overlay=document.createElement('div');overlay.id='overlay';app.appendChild(overlay);
 overlay.innerHTML=`
  <div class="topbar ui"><div class="brand"><div class="brand-mark">COASTAL OUTLAWS<small>AN OPEN-WORLD EXPERIMENT</small></div></div><div class="top-right"><div class="chip">DISTRICT <b>01 / COAST</b></div><button class="help ui" id="pause-top">Ⅱ &nbsp; MENU</button></div></div>
- <div class="hud hidden" id="hud"><div class="objective"><small id="objective-label">CURRENT OBJECTIVE</small><div id="objective-text">Explore the city. Find your own way.</div></div><div class="stats"><div class="stat-row"><span>VITALS</span><span id="health-num">100 / 100</span></div><div class="bar"><span id="health-bar"></span></div><div class="stat-row"><span>ARMOR</span><span id="armor-num">50 / 50</span></div><div class="bar armor"><span id="armor-bar"></span></div><div class="money"><small>CASH</small><span id="money">$1,250</span></div></div><div class="right-hud"><div class="wanted" id="wanted">WANTED &nbsp; <span>◇ ◇ ◇ ◇ ◇</span></div><div class="speedbox" id="speedbox">ON FOOT<div class="speed">— <small>KM/H</small></div></div></div><div class="crosshair hidden" id="crosshair"></div><div class="toast" id="toast"></div><div class="hint" id="hint">PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> DRIVE</div></div>
+ <div class="hud hidden" id="hud"><div class="objective"><small id="objective-label">CURRENT OBJECTIVE</small><div id="objective-text">Explore the city. Find your own way.</div></div><div class="radar-frame"><div class="radar-title">COAST / LIVE RADAR</div><canvas id="radar" width="180" height="180" aria-label="Live minimap"></canvas><div class="radar-legend"><span>▲ YOU</span><span>● TRAFFIC</span><span>◆ CONTRACT</span></div></div><div class="stats"><div class="stat-row"><span>VITALS</span><span id="health-num">100 / 100</span></div><div class="bar"><span id="health-bar"></span></div><div class="stat-row"><span>ARMOR</span><span id="armor-num">50 / 50</span></div><div class="bar armor"><span id="armor-bar"></span></div><div class="money"><small>CASH</small><span id="money">$1,250</span></div></div><div class="right-hud"><div class="wanted" id="wanted">WANTED &nbsp; <span>◇ ◇ ◇ ◇ ◇</span></div><div class="speedbox" id="speedbox">ON FOOT<div class="speed">— <small>KM/H</small></div></div></div><div class="crosshair hidden" id="crosshair"></div><div class="toast" id="toast"></div><div class="hint" id="hint">PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> DRIVE</div></div>
  <div class="panel" id="main-menu"><div class="menu-card"><div class="eyebrow">A NEW COASTLINE AWAITS</div><h1>MAKE<br>YOUR <em>MARK.</em></h1><div class="intro-copy">A city of sun-bleached streets, restless engines, and second chances. Explore freely, take the wheel, and write your own story in this original browser-based sandbox.</div><div class="menu-actions"><button class="primary" id="new-game">ENTER THE CITY <span>↗</span></button><button class="secondary" id="continue-game">CONTINUE JOURNEY <span>→</span></button><button class="secondary" id="settings-btn">SETTINGS <span>＋</span></button><button class="secondary" id="controls-btn">FIELD GUIDE <span>⌘</span></button></div><div class="menu-foot">INDEPENDENT GAME STUDY &nbsp; / &nbsp; CREDIT <strong>@SuryaPrabhas</strong><br>WEBGL · SINGLE PLAYER · AUTOSAVE ENABLED</div></div></div>
  <div class="modal hidden" id="pause-modal"><div class="modal-card"><div class="eyebrow">TAKE A BREATHER</div><h2>PAUSED</h2><p>The city will be waiting. Progress is stored locally on this browser.</p><div class="modal-buttons"><button class="primary" id="resume-btn">RESUME <span>▶</span></button><button class="secondary" id="save-btn">SAVE GAME</button></div><div class="modal-buttons"><button class="secondary" id="pause-settings">SETTINGS</button><button class="secondary" id="quit-btn">MAIN MENU</button></div></div></div>
  <div class="modal hidden" id="settings-modal"><div class="modal-card"><div class="eyebrow">TUNE YOUR EXPERIENCE</div><h2>SETTINGS</h2><p>Changes apply immediately where supported.</p><label class="setting-row">RENDER QUALITY <select id="quality"><option value="performance">Performance</option><option value="balanced" selected>Balanced</option><option value="high">High</option></select></label><label class="setting-row">SHOW TOUCH CONTROLS <input id="touch-option" type="checkbox" checked></label><label class="setting-row">CAMERA SENSITIVITY <input id="sensitivity" type="range" min=".4" max="2" value="1" step=".1"></label><label class="setting-row">REDUCED MOTION <input id="motion-option" type="checkbox"></label><div class="modal-buttons"><button class="primary" id="settings-back">DONE <span>✓</span></button><button class="secondary" id="reset-save">RESET SAVE</button></div></div></div>
- <div class="modal hidden" id="controls-modal"><div class="modal-card"><div class="eyebrow">FIELD GUIDE</div><h2>CONTROLS</h2><p><b>W A S D</b> — Move / steer<br><b>SHIFT</b> — Sprint · <b>SPACE</b> — Jump / handbrake<br><b>E</b> — Interact / enter or exit vehicle<br><b>F</b> — Start mission / context action<br><b>Mouse</b> — Look around · <b>Left click</b> — Fire<br><b>R</b> — Reload · <b>1</b> — Sidearm · <b>M</b> — Save<br><b>ESC</b> — Pause · <b>G</b> — Switch camera distance<br><br>On touch devices, use the virtual stick and action buttons. This build is a playable early slice: some city systems are simplified and not every activity is implemented yet.</p><div class="modal-buttons"><button class="primary" id="guide-back">GOT IT <span>✓</span></button></div></div></div>
+ <div class="modal hidden" id="controls-modal"><div class="modal-card"><div class="eyebrow">FIELD GUIDE</div><h2>CONTROLS</h2><p><b>W A S D</b> — Move / steer<br><b>SHIFT</b> — Sprint · <b>SPACE</b> — Jump / handbrake<br><b>E</b> — Interact / enter or exit vehicle<br><b>F</b> — Start mission / context action<br><b>Mouse</b> — Look around · <b>Left click</b> — Fire<br><b>R</b> — Reload · <b>1</b> — Sidearm · <b>M</b> — Save<br><b>SHIFT</b> — Nitro boost while driving · <b>H</b> — Horn<br><b>ESC</b> — Pause · <b>G</b> — Switch camera distance<br><br>On touch devices, use the virtual stick and action buttons. This build is a playable early slice: some city systems are simplified and not every activity is implemented yet.</p><div class="modal-buttons"><button class="primary" id="guide-back">GOT IT <span>✓</span></button></div></div></div>
  <div class="mobile-controls" id="mobile-controls"><div class="stick" id="stick"><div class="stick-knob" id="stick-knob"></div></div><div class="mobile-top"><button id="touch-interact">INTERACT</button><button id="touch-pause">PAUSE</button></div><div class="mobile-buttons"><button id="touch-jump">JUMP</button><button id="touch-enter">ENTER</button><button id="touch-fire">FIRE</button><button class="big" id="touch-sprint">RUN / GAS</button></div></div>`;
 const el=<T extends HTMLElement>(id:string)=>overlay.querySelector<T>('#'+id)!;
 const hide=(id:string)=>el(id).classList.add('hidden'),show=(id:string)=>el(id).classList.remove('hidden');
@@ -198,7 +198,7 @@ function setMode(next:Mode){
 }
 function freshGame(){
  player.position.set(0,0,7);player.rotation.y=0;vehicle.position.set(4,0,3);vehicle.rotation.y=Math.PI;
- health=100;armor=50;money=1250;wanted=0;ammo=36;mag=12;driving=false;speedCar=0;missionStage=0;missionActive=false;missionDone=false;dead=false;
+ health=100;armor=50;money=1250;wanted=0;ammo=36;mag=12;driving=false;speedCar=0;nitro=100;vehicleHealth=100;collisionCooldown=0;missionStage=0;missionActive=false;missionDone=false;dead=false;
  peds.forEach((p,i)=>{p.g.position.copy(p.home);p.health=100;p.flee=0;});
  setMode('playing');toast('WELCOME TO THE COAST. TAKE A LOOK AROUND.');refreshHUD();
 }
@@ -241,6 +241,7 @@ document.addEventListener('keydown',e=>{
  if(e.code==='KeyR'){if(ammo>=mag){ammo-=mag;mag=12;toast('RELOADED');}else if(ammo>0){mag=ammo;ammo=0;toast('RELOADED — LOW AMMO');}else toast('NO AMMUNITION');}
  if(e.code==='Digit1'){weapon='SIDEARM';toast('SIDEARM EQUIPPED');}
  if(e.code==='KeyM')save();
+ if(e.code==='KeyH'&&driving)playHorn();
  if(e.code==='KeyG')cameraDistance=cameraDistance===7.6?11.5:7.6;
 });
 document.addEventListener('keyup',e=>{keys.delete(e.code);});
@@ -256,6 +257,10 @@ const resetStick=()=>{stickPointer=null;stickX=0;stickY=0;knob.style.transform='
 stick.addEventListener('pointerup',resetStick);stick.addEventListener('pointercancel',resetStick);
 function updateStick(e:PointerEvent){const r=stick.getBoundingClientRect();let x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),lim=r.width*.34;const len=Math.hypot(x,y);if(len>lim){x=x/len*lim;y=y/len*lim;}stickX=x/lim;stickY=y/lim;knob.style.transform=`translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;}
 function down(a:Act){return acts.has(a)||({forward:keys.has('KeyW')||keys.has('ArrowUp'),back:keys.has('KeyS')||keys.has('ArrowDown'),left:keys.has('KeyA')||keys.has('ArrowLeft'),right:keys.has('KeyD')||keys.has('ArrowRight'),sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),jump:keys.has('Space'),interact:false,fire:fireHeld||keys.has('KeyK'),brake:keys.has('Space')} as Record<Act,boolean>)[a];}
+let hornContext:AudioContext|null=null;
+function playHorn(){try{hornContext??=new AudioContext();if(hornContext.state==='suspended')void hornContext.resume();const ctx=hornContext,now=ctx.currentTime,gain=ctx.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.42);gain.connect(ctx.destination);for(const hz of [350,440]){const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=hz;osc.connect(gain);osc.start(now);osc.stop(now+.43);}}catch{toast('HORN UNAVAILABLE IN THIS BROWSER');}}
+const radar=el<HTMLCanvasElement>('radar'),radarCtx=radar.getContext('2d');
+function drawRadar(){if(!radarCtx)return;const ctx=radarCtx,w=radar.width,h=radar.height,cx=w/2,cy=h/2,scale=.48;ctx.clearRect(0,0,w,h);ctx.save();ctx.beginPath();ctx.arc(cx,cy,cx-2,0,Math.PI*2);ctx.clip();ctx.fillStyle='rgba(4,16,24,.92)';ctx.fillRect(0,0,w,h);const px=player.position.x,pz=player.position.z;const mx=(x:number)=>cx+(x-px)*scale,my=(z:number)=>cy+(z-pz)*scale;ctx.strokeStyle='rgba(155,190,198,.18)';ctx.lineWidth=1;for(let n=-150;n<=150;n+=15){ctx.beginPath();ctx.moveTo(mx(n),0);ctx.lineTo(mx(n),h);ctx.stroke();ctx.beginPath();ctx.moveTo(0,my(n));ctx.lineTo(w,my(n));ctx.stroke();}ctx.strokeStyle='#59676d';ctx.lineWidth=5;for(const p of [-90,-45,0,45,90]){ctx.beginPath();ctx.moveTo(mx(-140),my(p));ctx.lineTo(mx(140),my(p));ctx.stroke();ctx.beginPath();ctx.moveTo(mx(p),my(-140));ctx.lineTo(mx(p),my(140));ctx.stroke();}ctx.strokeStyle='#b7b6a7';ctx.lineWidth=1;for(const p of [-90,-45,0,45,90]){ctx.beginPath();ctx.moveTo(mx(-140),my(p));ctx.lineTo(mx(140),my(p));ctx.stroke();ctx.beginPath();ctx.moveTo(mx(p),my(-140));ctx.lineTo(mx(p),my(140));ctx.stroke();}if(!missionDone){ctx.fillStyle='#74e5d3';ctx.beginPath();ctx.moveTo(mx(-41),my(-40)-5);ctx.lineTo(mx(-41)+5,my(-40));ctx.lineTo(mx(-41),my(-40)+5);ctx.lineTo(mx(-41)-5,my(-40));ctx.closePath();ctx.fill();}if(missionActive){const x=missionStage===1?18:-41,z=missionStage===1?-98:-40;ctx.fillStyle='#ffb36b';ctx.beginPath();ctx.arc(mx(x),my(z),3.2,0,Math.PI*2);ctx.fill();}ctx.fillStyle='#e7c98a';for(const t of traffic){ctx.save();ctx.translate(mx(t.g.position.x),my(t.g.position.z));ctx.rotate(t.g.rotation.y);ctx.fillRect(-2,-3.4,4,6.8);ctx.restore();}ctx.fillStyle='#d77c70';for(const p of peds){if(p.health>0&&Math.hypot(p.g.position.x-px,p.g.position.z-pz)<65){ctx.beginPath();ctx.arc(mx(p.g.position.x),my(p.g.position.z),1.6,0,Math.PI*2);ctx.fill();}}ctx.translate(cx,cy);ctx.rotate(-player.rotation.y);ctx.fillStyle='#74e5d3';ctx.beginPath();ctx.moveTo(0,-7);ctx.lineTo(5,5);ctx.lineTo(0,3);ctx.lineTo(-5,5);ctx.closePath();ctx.fill();ctx.restore();}
 function dist2(a:THREE.Vector3,b:THREE.Vector3){return a.distanceTo(b);}
 function interact(){
  if(mode!=='playing')return;
@@ -292,15 +297,15 @@ function refreshHUD(){
  el('health-num').textContent=`${Math.max(0,Math.round(health))} / 100`;el<HTMLDivElement>('health-bar').style.width=Math.max(0,health)+'%';
  el('armor-num').textContent=`${Math.round(armor)} / 50`;el<HTMLDivElement>('armor-bar').style.width=Math.max(0,armor/50*100)+'%';el('money').textContent='$'+money.toLocaleString('en-US');
  el('wanted').innerHTML='WANTED &nbsp; <span>'+Array.from({length:5},(_,i)=>i<wanted?'◆':'◇').join(' ')+'</span>';el('wanted').querySelector('span')!.className=wanted?'lit':'';
- el('speedbox').innerHTML=driving?`VEHICLE / ${weapon}<div class="speed">${Math.round(Math.abs(speedCar)*7.4)} <small>KM/H</small></div>`:`ON FOOT / ${weapon}<div class="speed">— <small>KM/H</small></div>`;
+ el('speedbox').innerHTML=driving?`VEHICLE / ${weapon}<div class="speed">${Math.round(Math.abs(speedCar)*7.4)} <small>KM/H</small></div><div class="vehicle-bars"><small>ENGINE ${Math.round(vehicleHealth)}%</small><span><i style="width:${vehicleHealth}%"></i></span><small>NITRO ${Math.round(nitro)}%</small><span class="nitro"><i style="width:${nitro}%"></i></span></div>`:`ON FOOT / ${weapon}<div class="speed">— <small>KM/H</small></div>`;
  el('objective-label').textContent=missionDone?'CONTRACT COMPLETE':missionActive?'ACTIVE CONTRACT':'CURRENT OBJECTIVE';
  el('objective-text').textContent=missionDone?'The city is yours to explore.':missionActive?(missionStage===1?'Reach the beach road and locate the parcel.':'Return to the docks to finish the contract.'):'Explore the city. Find your own way.';
- el('hint').innerHTML=driving?'PRESS <b>E</b> TO EXIT &nbsp; · &nbsp; <b>W A S D</b> DRIVE &nbsp; · &nbsp; <b>SPACE</b> BRAKE':'PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> CONTRACT';
+ el('hint').innerHTML=driving?'PRESS <b>E</b> TO EXIT &nbsp; · &nbsp; <b>W A S D</b> DRIVE &nbsp; · &nbsp; <b>SPACE</b> BRAKE &nbsp; · &nbsp; <b>SHIFT</b> BOOST':'PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> CONTRACT';
  el('crosshair').classList.toggle('hidden',!fireHeld&&!keys.has('KeyK'));
 }
 let saveTimer=0,policeTimer=0,refreshTimer=0,fireWasHeld=false;
 function update(dt:number){
- clock+=dt;shootCooldown=Math.max(0,shootCooldown-dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)el('toast').classList.remove('show');}
+ clock+=dt;shootCooldown=Math.max(0,shootCooldown-dt);collisionCooldown=Math.max(0,collisionCooldown-dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)el('toast').classList.remove('show');}
  if(mode!=='playing')return;
  dayTime=(dayTime+dt*.00065)%1;
  const sunAngle=dayTime*Math.PI*2; sun.position.set(Math.cos(sunAngle)*80,Math.sin(sunAngle)*90,18);
@@ -309,15 +314,20 @@ function update(dt:number){
  const skyColor=new THREE.Color().setHSL(.53,.22,.16+daylight*.48);scene.background=skyColor;if(scene.fog)scene.fog.color.copy(skyColor);
  if(driving){
   const acc=(down('forward')?1:0)-(down('back')?1:0);
-  speedCar+=acc*dt*13;speedCar*=Math.pow(down('brake')?.88:.965,dt*60);speedCar=THREE.MathUtils.clamp(speedCar,-8,22);
+  const boosting=down('sprint')&&nitro>0&&speedCar>1;
+  if(boosting){nitro=Math.max(0,nitro-dt*27);speedCar+=acc*dt*19;}else{nitro=Math.min(100,nitro+dt*8);speedCar+=acc*dt*13;}
+  speedCar*=Math.pow(down('brake')?.88:.965,dt*60);
+  const damagedLimit=vehicleHealth<25?8:vehicleHealth<55?15:22;
+  speedCar=THREE.MathUtils.clamp(speedCar,-8,boosting?32:damagedLimit);
   const steer=(down('left')?1:0)-(down('right')?1:0);
-  vehicle.rotation.y+=steer*dt*(.8+Math.abs(speedCar)*.035)*Math.sign(speedCar||1);
+  const grip=down('brake')?.65:1;
+  vehicle.rotation.y+=steer*dt*(.72+Math.abs(speedCar)*.032)*Math.sign(speedCar||1)/grip;
   const fwd=new THREE.Vector3(Math.sin(vehicle.rotation.y),0,Math.cos(vehicle.rotation.y));
   vehicle.position.addScaledVector(fwd,speedCar*dt);
   vehicle.position.x=THREE.MathUtils.clamp(vehicle.position.x,-124,124);vehicle.position.z=THREE.MathUtils.clamp(vehicle.position.z,-124,124);
   wheels.forEach(w=>w.rotation.x+=speedCar*dt*1.5);
   player.position.lerp(new THREE.Vector3(vehicle.position.x,0,vehicle.position.z),.25);player.rotation.y=vehicle.rotation.y;body.visible=false;
-  traffic.forEach(t=>{if(dist2(t.g.position,vehicle.position)<2.5){speedCar*=-.32;health=Math.max(0,health-2);toast('COLLISION — TAKE CARE');}});
+  traffic.forEach(t=>{if(dist2(t.g.position,vehicle.position)<2.5&&collisionCooldown<=0){speedCar*=-.32;const impact=Math.max(2,Math.round(Math.abs(speedCar)*.7));vehicleHealth=Math.max(0,vehicleHealth-impact);health=Math.max(0,health-Math.max(1,Math.round(impact*.25)));collisionCooldown=.8;toast(vehicleHealth<25?'ENGINE CRITICAL — FIND A CLEAR ROAD':`COLLISION — VEHICLE ${vehicleHealth}%`);}});
  }else{
   body.visible=true;
   let f=(down('forward')?1:0)-(down('back')?1:0),s=(down('right')?1:0)-(down('left')?1:0);
@@ -359,7 +369,7 @@ function update(dt:number){
  if(missionActive&&missionStage===1&&dist2(player.position,new THREE.Vector3(18,0,-98))<7){missionStage=2;toast('PARCEL FOUND. PRESS F TO COLLECT IT.');}
  if(missionActive&&missionStage===2&&dist2(player.position,new THREE.Vector3(-41,0,-40))<7){toastTime=Math.max(toastTime,.05);}
  saveTimer+=dt;if(saveTimer>30){saveTimer=0;try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}}
- refreshTimer+=dt;if(refreshTimer>.25){refreshTimer=0;refreshHUD();}
+ refreshTimer+=dt;if(refreshTimer>.15){refreshTimer=0;refreshHUD();drawRadar();}
 }
 
 const camTarget=new THREE.Vector3(),camPos=new THREE.Vector3();
@@ -390,7 +400,7 @@ function frame(now:number){
 }
 requestAnimationFrame(frame);
 
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,settings.quality==='performance'?1:settings.quality==='high'?2:1.5));}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,settings.quality==='performance'?1:settings.quality==='high'?2:1.5));drawRadar();}
 window.addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing'){setMode('paused');}});
 window.addEventListener('beforeunload',()=>{try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}});
