@@ -221,7 +221,7 @@ let cameraSensitivity=1;let cameraDistance=7.6;let cameraYaw=0;let cameraPitch=.
 function applyQuality(){
  const q=settings.quality;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='performance'?1:q==='high'?2:1.5));
  sun.castShadow=q!=='performance';sun.shadow.mapSize.set(q==='high'?2048:1024,q==='high'?2048:1024);
- scene.fog!.density=q==='performance'?.0055:q==='high'?.0033:.0042;
+ if(scene.fog instanceof THREE.FogExp2) scene.fog.density=q==='performance'?.0055:q==='high'?.0033:.0042;
  renderer.setSize(innerWidth,innerHeight);
 }
 el('controls-modal').addEventListener('click',e=>{if(e.target===el('controls-modal'))hide('controls-modal')});
@@ -306,7 +306,7 @@ function update(dt:number){
  const sunAngle=dayTime*Math.PI*2; sun.position.set(Math.cos(sunAngle)*80,Math.sin(sunAngle)*90,18);
  const daylight=THREE.MathUtils.clamp(Math.sin(sunAngle)*.7+.5,.1,1);
  hemi.intensity=.6+daylight*1.5;sun.intensity=.2+daylight*3;
- scene.background!.setHSL(.53,.22,.16+daylight*.48);(scene.fog as THREE.FogExp2).color.copy(scene.background as THREE.Color);
+ const skyColor=new THREE.Color().setHSL(.53,.22,.16+daylight*.48);scene.background=skyColor;if(scene.fog)scene.fog.color.copy(skyColor);
  if(driving){
   const acc=(down('forward')?1:0)-(down('back')?1:0);
   speedCar+=acc*dt*13;speedCar*=Math.pow(down('brake')?.88:.965,dt*60);speedCar=THREE.MathUtils.clamp(speedCar,-8,22);
