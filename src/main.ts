@@ -333,10 +333,11 @@ function update(dt:number){
   let f=(down('forward')?1:0)-(down('back')?1:0),s=(down('right')?1:0)-(down('left')?1:0);
   const inputLen=Math.hypot(f,s);if(inputLen>1){f/=inputLen;s/=inputLen;}
   const speed=down('sprint')?8.0:4.4;
-  const move=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(f).add(new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw)).multiplyScalar(s)).multiplyScalar(speed);
+  // Character model faces local +Z. Keep W aligned with that visible forward direction.
+  const move=new THREE.Vector3(Math.sin(cameraYaw),0,Math.cos(cameraYaw)).multiplyScalar(f).add(new THREE.Vector3(Math.cos(cameraYaw),0,-Math.sin(cameraYaw)).multiplyScalar(s)).multiplyScalar(speed);
   velocity.x=THREE.MathUtils.damp(velocity.x,move.x,9,dt);velocity.z=THREE.MathUtils.damp(velocity.z,move.z,9,dt);
   player.position.x+=velocity.x*dt;player.position.z+=velocity.z*dt;
-  if(inputLen>.06)player.rotation.y=Math.atan2(velocity.x,-velocity.z);
+  if(inputLen>.06)player.rotation.y=Math.atan2(velocity.x,velocity.z);
   if(down('jump')&&onGround){jumpV=6.2;onGround=false;}
   jumpV-=18*dt;player.position.y+=jumpV*dt;if(player.position.y<=0){player.position.y=0;jumpV=0;onGround=true;}
   player.position.x=THREE.MathUtils.clamp(player.position.x,-126,126);player.position.z=THREE.MathUtils.clamp(player.position.z,-126,126);
@@ -377,7 +378,7 @@ function updateCamera(dt:number){
  const subject=driving?vehicle:player;
  const yaw=driving?vehicle.rotation.y+cameraYaw*.25:cameraYaw;
  const height=driving?2.8:2.2;
- const offset=new THREE.Vector3(Math.sin(yaw)*cameraDistance, height+cameraPitch*4, Math.cos(yaw)*cameraDistance);
+ const offset=new THREE.Vector3(Math.sin(yaw)*cameraDistance, height+cameraPitch*4, -Math.cos(yaw)*cameraDistance);
  camPos.copy(subject.position).add(offset);camTarget.copy(subject.position).add(new THREE.Vector3(0,driving?1.2:1.45,0));
  // soft collision raycast against world props keeps the camera out of walls
  const ray=new THREE.Raycaster(camTarget,camPos.clone().sub(camTarget).normalize(),0.2,cameraDistance+2);
