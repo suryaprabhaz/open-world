@@ -165,13 +165,13 @@ const keys=new Set<string>();const acts=new Set<Act>();let mode:Mode='menu';let 
 const saveKey='coastal-outlaws-save-v1';
 function toast(s:string){const e=document.querySelector<HTMLDivElement>('#toast');if(e){e.textContent=s;e.classList.add('show');toastTime=2.5;}}
 function save(){
- try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings:{quality:settings.quality,music:settings.music}}));toast('GAME SAVED');}
+ try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,nitro,vehicleHealth,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings:{quality:settings.quality,music:settings.music}}));toast('GAME SAVED');}
  catch{toast('SAVE UNAVAILABLE — STORAGE IS DISABLED');}
 }
 const settings={quality:'balanced',music:false};
 function restore(){
  try{const raw=localStorage.getItem(saveKey);if(!raw)return false;const s=JSON.parse(raw);if(s.v!==1)return false;
- money=Number.isFinite(s.money)?s.money:money;health=Number.isFinite(s.health)?s.health:health;armor=Number.isFinite(s.armor)?s.armor:armor;ammo=Number.isFinite(s.ammo)?s.ammo:ammo;mag=Number.isFinite(s.mag)?s.mag:mag;missionStage=s.missionStage||0;missionDone=!!s.missionDone;dayTime=s.dayTime||.27;
+ money=Number.isFinite(s.money)?s.money:money;health=Number.isFinite(s.health)?s.health:health;armor=Number.isFinite(s.armor)?s.armor:armor;ammo=Number.isFinite(s.ammo)?s.ammo:ammo;mag=Number.isFinite(s.mag)?s.mag:mag;nitro=Number.isFinite(s.nitro)?THREE.MathUtils.clamp(s.nitro,0,100):nitro;vehicleHealth=Number.isFinite(s.vehicleHealth)?THREE.MathUtils.clamp(s.vehicleHealth,0,100):vehicleHealth;missionStage=s.missionStage||0;missionDone=!!s.missionDone;dayTime=Number.isFinite(s.dayTime)?s.dayTime:.27;
  if(Array.isArray(s.position)&&s.position.length===3)player.position.fromArray(s.position);
  if(Array.isArray(s.vehicle)&&s.vehicle.length===3)vehicle.position.fromArray(s.vehicle);
  return true;
@@ -368,7 +368,7 @@ function update(dt:number){
  else policeTimer=0;
  if(missionActive&&missionStage===1&&dist2(player.position,new THREE.Vector3(18,0,-98))<7){missionStage=2;toast('PARCEL FOUND. PRESS F TO COLLECT IT.');}
  if(missionActive&&missionStage===2&&dist2(player.position,new THREE.Vector3(-41,0,-40))<7){toastTime=Math.max(toastTime,.05);}
- saveTimer+=dt;if(saveTimer>30){saveTimer=0;try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}}
+ saveTimer+=dt;if(saveTimer>30){saveTimer=0;try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,nitro,vehicleHealth,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}}
  refreshTimer+=dt;if(refreshTimer>.15){refreshTimer=0;refreshHUD();drawRadar();}
 }
 
@@ -403,7 +403,7 @@ requestAnimationFrame(frame);
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,settings.quality==='performance'?1:settings.quality==='high'?2:1.5));drawRadar();}
 window.addEventListener('resize',resize);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing'){setMode('paused');}});
-window.addEventListener('beforeunload',()=>{try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}});
+window.addEventListener('beforeunload',()=>{try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,nitro,vehicleHealth,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}});
 function addMissionMarker(){
  const g=new THREE.Group();g.position.set(-41,0,-40);scene.add(g);
  const base=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.1,.12,24),mat(0x74e5d3,.45,.15));base.position.y=.08;g.add(base);
