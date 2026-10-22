@@ -13,7 +13,8 @@ The URL becomes live after GitHub Pages is enabled for the repository and the de
 - Mouse/keyboard controls plus a virtual touch joystick and touch action buttons.
 - Basic sidearm firing feedback, ammunition and reload, civilian flee reactions and a simple wanted/pursuit timer.
 - One small parcel contract with a start marker, pickup location and return reward.
-- HUD with health, armor, cash, wanted level, current objective and vehicle speed.
+- HUD with health, armor, cash, wanted level, current objective, live radar/minimap and vehicle speed.
+- Vehicle nitro boost, engine condition/damage, collision cooldown, and synthesized horn audio (H while driving).
 - Daylight cycle, fog, shadows, tone mapping, responsive quality options.
 - Local browser save/restore and periodic autosave.
 - GitHub Actions build-and-deploy workflow for GitHub Pages.
@@ -101,7 +102,7 @@ The game scene and visible geometry are generated in code; the interface loads o
 2. Add a real physics layer, robust world collision and drivable road navigation.
 3. Add a raycast-based aiming system, proper hitboxes, weapon switching and hit reactions.
 4. Implement road graph traffic, police units with pursuit states and navigation.
-5. Expand the mission framework, save migrations and map/minimap.
+5. Expand the mission framework, save migrations and add a full-screen map with waypoint routing.
 6. Add sound, accessibility remapping, gamepad support and browser/device tests.
 7. Profile on real low-end phones; improve LOD, asset loading and memory disposal.
 
