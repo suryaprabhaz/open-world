@@ -6,10 +6,16 @@ Coastal Outlaws is an original browser game. This document records promising ref
 
 ### Courier City — browser-based open world
 - Repository: https://github.com/shubhransh-gupta/courier-city
-- License file checked: MIT License, copyright Shubhransh Gupta (2026).
-- Useful ideas: separation of player/vehicle/camera/traffic systems, procedural city generation, traffic avoidance, minimap/GPS, audio management and flight vehicles.
-- Current status: studied as a design/architecture reference only. No Courier City source code or assets have been copied into Coastal Outlaws in this upgrade.
-- If code is adapted later, retain the MIT copyright and permission notice in a third-party notices file and document the adapted files.
+- License: MIT License confirmed in repository metadata and LICENSE file.
+- Useful ideas: separation of player/vehicle/camera/traffic systems, procedural city generation, traffic avoidance, minimap/GPS, audio management and vehicle variety.
+- Current status: studied as a design/architecture reference. The existing game has not imported Courier City assets or wholesale systems.
+- If code is adapted later, retain the MIT copyright and permission notice, add it to third-party notices, and document the adapted files.
+
+### GTA Clone / Open City — browser action sandbox
+- Repository: https://github.com/25nyak/Gta-Clone
+- Useful ideas to independently implement: wanted-level escalation, police pursuit states, vehicle categories, mission loops, world events and procedural audio.
+- License status: repository metadata currently reports no declared license. Public availability is not permission to reuse the source code or assets.
+- Current status: concept/design reference only. Do not copy or adapt source code, bundled assets, or module implementations unless the owner provides an explicit compatible license.
 
 ### Rapier — real-time 3D physics
 - Official documentation: https://rapier.rs/docs/
@@ -19,27 +25,26 @@ Coastal Outlaws is an original browser game. This document records promising ref
 
 ### Kenney — CC0 game assets
 - Official support/license explanation: https://kenney.nl/support
-- Example asset packs: https://kenney.nl/assets/car-kit and https://kenney.nl/assets/prototype-kit
-- License: verify the license on each individual asset pack; Kenney states its free asset packs are public-domain/CC0.
-- Candidate uses: unbranded cars, props, characters and prototype animations. Prefer glTF/GLB where available, optimize textures and geometry, and keep a local credit/asset manifest even where attribution is optional.
-- Current status: no Kenney models have been imported yet. Download each selected pack from its official page and verify the included license before committing the assets.
+- Example packs: https://kenney.nl/assets/car-kit and https://kenney.nl/assets/prototype-kit
+- License: verify the license on each individual asset pack and included terms before committing models. Keep a local asset manifest even where attribution is optional.
+- Current status: no Kenney models have been imported yet.
 
 ## Integration order
 
 1. Preserve stable deployment and add browser smoke tests.
-2. Import selected CC0 vehicle and animated-character assets with a local asset manifest.
-3. Add Rapier in a dedicated physics module; start with ground and vehicle colliders, then expand to static buildings and ramps.
-4. Improve vehicle handling, traffic navigation, pedestrian steering and pursuit states.
-5. Add mission/map systems and original audio, then profile and optimize for desktop and mobile.
+2. Import selected correctly licensed vehicle and animated-character assets with a local asset manifest and loading fallbacks.
+3. Add a physics adapter; evaluate Rapier against the existing driving baseline before migrating collisions.
+4. Improve vehicle handling, road-graph traffic, pedestrian steering and police pursuit states.
+5. Expand the mission/map systems and original audio, then profile and optimize for desktop and mobile.
 
 ## Non-negotiable asset rules
 
 - Publicly viewable source is not automatically licensed for reuse.
 - Do not extract or redistribute GTA/Rockstar models, maps, textures, audio, characters, logos or mission content.
-- Do not mix a code license with a separate model/texture license; track them independently.
-- Keep the upstream license and attribution notices whenever required.
-- Prefer original Coastal Outlaws characters, districts, vehicles and story even when learning from other open-source games.
+- Track source-code license and model/texture/audio licenses independently.
+- Retain upstream license and attribution notices when required.
+- Keep original Coastal Outlaws characters, districts, vehicles, naming and story.
 
 ## Current implementation status
 
-The first gameplay upgrade adds a procedural live minimap, nitro boost, vehicle-condition/damage feedback, and synthesized horn audio. The minimap and vehicle mechanics are original additions to this repository; licensed external models and a full rigid-body physics engine remain future integration work.
+The existing project includes an original procedural Three.js coastal district, on-foot movement, vehicle driving, basic weapon feedback, a parcel contract, HUD/radar, nitro, vehicle-condition feedback, synthesized horn audio, a day/night cycle, local save/restore and touch controls. This research file and the reference-guided upgrade plan describe future work; they do not claim that external assets, Rapier, advanced police AI, or the GTA Clone code have been integrated.
