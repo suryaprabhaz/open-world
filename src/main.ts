@@ -30,6 +30,35 @@ function box(parent:THREE.Object3D, size:[number,number,number], material:THREE.
  const m=new THREE.Mesh(new THREE.BoxGeometry(...size),material);m.position.set(...pos);m.castShadow=cast;m.receiveShadow=receive;parent.add(m);return m;
 }
 const city=new THREE.Group();scene.add(city);
+
+function sphere(parent:THREE.Object3D,r:number,material:THREE.Material,pos:[number,number,number],scale:[number,number,number]=[1,1,1]){
+ const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),material);m.position.set(...pos);m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+}
+function bench(x:number,z:number,rot=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;city.add(g);
+ const wood=mat(0x76533a),metal=mat(0x39484b,.5,.5);
+ box(g,[1.8,.12,.48],wood,[0,.58,0]);box(g,[1.8,.54,.1],wood,[0,.93,.22]);
+ for(const px of [-.68,.68]){box(g,[.09,.58,.09],metal,[px,.3,0]);box(g,[.09,.58,.09],metal,[px,.6,.22]);}
+}
+function trashCan(x:number,z:number){
+ const g=new THREE.Group();g.position.set(x,0,z);city.add(g);
+ const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.28,.23,.85,12),mat(0x405a58,.65,.25));barrel.position.y=.43;g.add(barrel);
+ const lid=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.08,12),mat(0x273b3d,.5,.3));lid.position.y=.88;g.add(lid);
+}
+function planter(x:number,z:number){
+ const g=new THREE.Group();g.position.set(x,0,z);city.add(g);
+ const stone=mat(0x8e978d),soil=mat(0x4d4030);
+ const pot=new THREE.Mesh(new THREE.CylinderGeometry(.72,.62,.55,12),stone);pot.position.y=.28;g.add(pot);
+ const earth=new THREE.Mesh(new THREE.CylinderGeometry(.59,.59,.06,12),soil);earth.position.y=.57;g.add(earth);
+ const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.56,1),leafMat);shrub.position.y=.95;shrub.scale.set(1,1.05,1);shrub.castShadow=true;g.add(shrub);
+}
+function sculpture(x:number,z:number){
+ const g=new THREE.Group();g.position.set(x,0,z);city.add(g);
+ const brass=mat(0xb09a68,.38,.7),stone=mat(0x8b938b);
+ const plinth=new THREE.Mesh(new THREE.BoxGeometry(1.6,.65,1.6),stone);plinth.position.y=.32;g.add(plinth);
+ const stem=new THREE.Mesh(new THREE.TorusKnotGeometry(.43,.12,72,10,2,3),brass);stem.position.y=1.35;stem.rotation.x=.25;stem.castShadow=true;g.add(stem);
+}
+
 function building(x:number,z:number,w:number,d:number,h:number,seed:number){
  const palette=[0xc5b8a1,0xa5b3b4,0x857f7a,0xd0c1a5,0x899da0,0x9b8a7c,0xe0d3b4,0x6d858d,0xc7c3b4,0x99877d];
  const wall=mat(palette[seed%palette.length],0.87), trim=mat(seed%3===0?0x334951:0xddd1b6), roofMat=mat(0x55595a);
@@ -84,6 +113,21 @@ for(let ix=-2;ix<=2;ix++)for(let iz=-2;iz<=2;iz++){
 for(let i=0;i<22;i++){palm(8+Math.random()*26,-122+i*11,.78+Math.random()*.35);}
 for(let i=0;i<12;i++){palm(3+i*2.5,123,.9);}
 
+for(let i=0;i<9;i++){
+ const z=-78+i*19;
+ bench(13,z,Math.PI/2);bench(28,z+4,Math.PI/2);
+ if(i%2===0)trashCan(10,z+6);
+}
+for(const [x,z] of [[-12,-12],[12,-12],[-12,12],[12,12]] as [number,number][]){planter(x,z);}
+sculpture(-8,-8);
+for(let i=0;i<7;i++){
+ const g=new THREE.Group();g.position.set(34,0,-72+i*20);city.add(g);
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.055,.075,3.8,8),mat(0x485459));pole.position.y=1.9;g.add(pole);
+ const sign=new THREE.Mesh(new THREE.BoxGeometry(.85,.48,.08),mat(i%2?0xc95d44:0x247f7d));sign.position.set(0,3.05,0);g.add(sign);
+ box(g,[.57,.06,.025],mat(0xe3d9bd),[0,3.05,.055],false,false);
+}
+
+
 // Asphalt-adjacent sidewalk strips, crosswalks and street lamps
 for(const x of roads)for(const z of roads){
  for(let i=-2;i<=2;i++){
@@ -136,6 +180,30 @@ for(const x of [-.72,.72]){
 }
 vehicle.position.set(3,0,4);vehicle.rotation.y=Math.PI;
 
+
+function marketStall(x:number,z:number,accent:number,rotation=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rotation;city.add(g);
+ const frame=mat(0x473c33),cloth=mat(accent),counter=mat(0xb6a17e),dark=mat(0x253e46);
+ for(const px of [-1.1,1.1])for(const pz of [-.55,.55]){
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,2.5,7),frame);post.position.set(px,1.25,pz);g.add(post);
+ }
+ box(g,[2.45,.14,1.35],cloth,[0,2.43,0]);
+ for(let i=0;i<5;i++)box(g,[.48,.16,1.36],mat(i%2?0xf1dec0:accent),[-.96+i*.48,2.32,0],false,false);
+ box(g,[2.1,.82,.55],counter,[0,.65,.28]);
+ box(g,[1.95,.05,.5],dark,[0,1.08,.28],false,false);
+ for(let i=0;i<5;i++)sphere(g,.12,mat([0xcd6d4a,0xd6ae58,0x609879,0xd9c1a0,0x7b9ba9][i]),[-.75+i*.36,1.25,.22],[1,1,.85]);
+}
+marketStall(32,-28,0xc55e48,Math.PI/2);
+marketStall(32,-23,0x317e79,Math.PI/2);
+marketStall(32,-18,0xd0a34f,Math.PI/2);
+function cafeTable(x:number,z:number){
+ const g=new THREE.Group();g.position.set(x,0,z);city.add(g);
+ const leg=new THREE.Mesh(new THREE.CylinderGeometry(.055,.065,.72,8),mat(0x434c4b));leg.position.y=.36;g.add(leg);
+ const top=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.1,18),mat(0xd8c5a7));top.position.y=.74;g.add(top);
+ for(let i=0;i<3;i++){const a=i*Math.PI*2/3;const seat=new THREE.Mesh(new THREE.BoxGeometry(.48,.08,.43),mat(0x4e7772));seat.position.set(Math.cos(a)*.8,.42,Math.sin(a)*.8);g.add(seat);}
+}
+cafeTable(24,-25);cafeTable(24,-17);
+
 // Character/NPC setup
 type Ped={g:THREE.Group;dir:THREE.Vector3;speed:number;phase:number;health:number;flee:number;home:THREE.Vector3};
 const peds:Ped[]=[];
@@ -180,8 +248,9 @@ function restore(){
 
 const overlay=document.createElement('div');overlay.id='overlay';app.appendChild(overlay);
 overlay.innerHTML=`
+ <div class="district-label ui"><span class="district-dot"></span><span>COASTAL DISTRICT</span><small>OLD HARBOUR · EST. 1987</small></div>
  <div class="topbar ui"><div class="brand"><div class="brand-mark">COASTAL OUTLAWS<small>AN OPEN-WORLD EXPERIMENT</small></div></div><div class="top-right"><div class="chip">DISTRICT <b>01 / COAST</b></div><button class="help ui" id="pause-top">Ⅱ &nbsp; MENU</button></div></div>
- <div class="hud hidden" id="hud"><div class="objective"><small id="objective-label">CURRENT OBJECTIVE</small><div id="objective-text">Explore the city. Find your own way.</div></div><div class="radar-frame"><div class="radar-title">COAST / LIVE RADAR</div><canvas id="radar" width="180" height="180" aria-label="Live minimap"></canvas><div class="radar-legend"><span>▲ YOU</span><span>● TRAFFIC</span><span>◆ CONTRACT</span></div></div><div class="stats"><div class="stat-row"><span>VITALS</span><span id="health-num">100 / 100</span></div><div class="bar"><span id="health-bar"></span></div><div class="stat-row"><span>ARMOR</span><span id="armor-num">50 / 50</span></div><div class="bar armor"><span id="armor-bar"></span></div><div class="money"><small>CASH</small><span id="money">$1,250</span></div></div><div class="right-hud"><div class="wanted" id="wanted">WANTED &nbsp; <span>◇ ◇ ◇ ◇ ◇</span></div><div class="speedbox" id="speedbox">ON FOOT<div class="speed">— <small>KM/H</small></div></div></div><div class="crosshair hidden" id="crosshair"></div><div class="toast" id="toast"></div><div class="hint" id="hint">PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> DRIVE</div></div>
+ <div class="hud hidden" id="hud"><div class="location-card"><small>YOU ARE IN</small><strong id="location-name">PALM SHORE</strong><span id="location-sub">WATERFRONT DISTRICT</span></div><div class="objective"><small id="objective-label">CURRENT OBJECTIVE</small><div id="objective-text">Explore the city. Find your own way.</div></div><div class="radar-frame"><div class="radar-title">COAST / LIVE RADAR</div><canvas id="radar" width="180" height="180" aria-label="Live minimap"></canvas><div class="radar-legend"><span>▲ YOU</span><span>● TRAFFIC</span><span>◆ CONTRACT</span></div></div><div class="stats"><div class="stat-row"><span>VITALS</span><span id="health-num">100 / 100</span></div><div class="bar"><span id="health-bar"></span></div><div class="stat-row"><span>ARMOR</span><span id="armor-num">50 / 50</span></div><div class="bar armor"><span id="armor-bar"></span></div><div class="money"><small>CASH</small><span id="money">$1,250</span></div></div><div class="right-hud"><div class="wanted" id="wanted">WANTED &nbsp; <span>◇ ◇ ◇ ◇ ◇</span></div><div class="speedbox" id="speedbox">ON FOOT<div class="speed">— <small>KM/H</small></div></div></div><div class="crosshair hidden" id="crosshair"></div><div class="toast" id="toast"></div><div class="hint" id="hint">PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> DRIVE</div></div>
  <div class="panel" id="main-menu"><div class="menu-card"><div class="eyebrow">A NEW COASTLINE AWAITS</div><h1>MAKE<br>YOUR <em>MARK.</em></h1><div class="intro-copy">A city of sun-bleached streets, restless engines, and second chances. Explore freely, take the wheel, and write your own story in this original browser-based sandbox.</div><div class="menu-actions"><button class="primary" id="new-game">ENTER THE CITY <span>↗</span></button><button class="secondary" id="continue-game">CONTINUE JOURNEY <span>→</span></button><button class="secondary" id="settings-btn">SETTINGS <span>＋</span></button><button class="secondary" id="controls-btn">FIELD GUIDE <span>⌘</span></button></div><div class="menu-foot">INDEPENDENT GAME STUDY &nbsp; / &nbsp; CREDIT <strong>@SuryaPrabhas</strong><br>WEBGL · SINGLE PLAYER · AUTOSAVE ENABLED</div></div></div>
  <div class="modal hidden" id="pause-modal"><div class="modal-card"><div class="eyebrow">TAKE A BREATHER</div><h2>PAUSED</h2><p>The city will be waiting. Progress is stored locally on this browser.</p><div class="modal-buttons"><button class="primary" id="resume-btn">RESUME <span>▶</span></button><button class="secondary" id="save-btn">SAVE GAME</button></div><div class="modal-buttons"><button class="secondary" id="pause-settings">SETTINGS</button><button class="secondary" id="quit-btn">MAIN MENU</button></div></div></div>
  <div class="modal hidden" id="settings-modal"><div class="modal-card"><div class="eyebrow">TUNE YOUR EXPERIENCE</div><h2>SETTINGS</h2><p>Changes apply immediately where supported.</p><label class="setting-row">RENDER QUALITY <select id="quality"><option value="performance">Performance</option><option value="balanced" selected>Balanced</option><option value="high">High</option></select></label><label class="setting-row">SHOW TOUCH CONTROLS <input id="touch-option" type="checkbox" checked></label><label class="setting-row">CAMERA SENSITIVITY <input id="sensitivity" type="range" min=".4" max="2" value="1" step=".1"></label><label class="setting-row">REDUCED MOTION <input id="motion-option" type="checkbox"></label><div class="modal-buttons"><button class="primary" id="settings-back">DONE <span>✓</span></button><button class="secondary" id="reset-save">RESET SAVE</button></div></div></div>
