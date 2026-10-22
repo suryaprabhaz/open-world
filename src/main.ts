@@ -162,6 +162,21 @@ capsule(armL,.115,.52,shirt,[0,-.25,0],[0,0,-.15]);capsule(armR,.115,.52,shirt,[
 capsule(armL,.095,.25,skin,[0,-.59,0]);capsule(armR,.095,.25,skin,[0,-.59,0]);
 player.position.set(0,0,7);
 
+
+// Original stylized non-box player design: hooded jacket, layered clothing, backpack and face details.
+const hoodie=mat(0x182d39),trimMat=mat(0x74e5d3,.45,.15),eyeMat=mat(0x181c20,.35),beltMat=mat(0x4a4b45,.65);
+const hood=new THREE.Mesh(new THREE.TorusGeometry(.235,.09,8,18),hoodie);hood.position.set(0,1.92,.015);body.add(hood);
+const backpack=new THREE.Mesh(new THREE.BoxGeometry(.43,.58,.22),mat(0x45534e));backpack.position.set(0,1.34,.28);backpack.castShadow=true;body.add(backpack);
+box(body,[.7,.08,.42],beltMat,[0,1.02,0]);
+for(const x of [-.085,.085]){
+ const eye=sphere(body,.027,eyeMat,[x,1.95,-.207],[1,.8,.45]);
+ const glint=sphere(body,.009,trimMat,[x-.008,1.957,-.229]);
+}
+box(body,[.49,.035,.035],trimMat,[0,1.57,-.24],false,false);
+for(const x of [-.19,.19]){
+ const shoulder=sphere(body,.17,hoodie,[x,1.56,0],[.85,.8,.8]);
+}
+
 const vehicle=new THREE.Group();scene.add(vehicle);
 const carPaint=new THREE.MeshStandardMaterial({color:0xc75a45,roughness:.34,metalness:.35});
 box(vehicle,[2.2,.65,4.2],carPaint,[0,.65,0]);
@@ -179,6 +194,25 @@ for(const x of [-.72,.72]){
  box(vehicle,[.34,.18,.06],mat(0xd64136,.25),[x,.72,2.12],false,false);
 }
 vehicle.position.set(3,0,4);vehicle.rotation.y=Math.PI;
+
+// Car detailing: wheel arches, side sills, mirrors, grille and a rear bumper for a less primitive silhouette.
+const chrome=mat(0xa8b7b8,.32,.78),rubber=mat(0x151a1d,.92),taillight=mat(0xe03b32,.32);
+box(vehicle,[2.28,.16,3.05],mat(0x4a4e4d),[0,.34,0]);
+box(vehicle,[1.25,.16,.08],chrome,[0,.62,-2.14],false,false);
+box(vehicle,[1.15,.14,.08],mat(0x292d2e),[0,.63,2.14],false,false);
+for(const x of [-1.12,1.12]){
+ box(vehicle,[.12,.22,2.55],carPaint,[x,.49,0]);
+ const mirror=sphere(vehicle,.12,carPaint,[x*1.12,1.12,-.88],[1,.65,.8]);
+ box(vehicle,[.055,.055,.3],chrome,[x*1.11,1.08,-.72],false,false);
+}
+for(const z of [-1.38,1.38])for(const x of [-1.045,1.045]){
+ const arch=new THREE.Mesh(new THREE.TorusGeometry(.42,.065,7,20,Math.PI),carPaint);arch.position.set(x,.4,z);arch.rotation.y=Math.PI/2;arch.rotation.z=Math.PI;vehicle.add(arch);
+}
+for(const x of [-.76,.76]){
+ const light=new THREE.Mesh(new THREE.BoxGeometry(.27,.15,.07),new THREE.MeshStandardMaterial({color:0xffe7ad,emissive:0x7b5120,emissiveIntensity:1.1}));light.position.set(x,.72,-2.17);vehicle.add(light);
+ const rear=new THREE.Mesh(new THREE.BoxGeometry(.3,.12,.07),new THREE.MeshStandardMaterial({color:0xb52425,emissive:0x5a0808,emissiveIntensity:.8}));rear.position.set(x,.72,2.17);vehicle.add(rear);
+}
+
 
 
 function marketStall(x:number,z:number,accent:number,rotation=0){
