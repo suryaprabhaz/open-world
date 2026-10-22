@@ -195,6 +195,32 @@ for(const x of [-.72,.72]){
 }
 vehicle.position.set(3,0,4);vehicle.rotation.y=Math.PI;
 
+// Sculpted outer shell: a beveled side profile softens the prototype's rectangular chassis.
+const bodyProfile = new THREE.Shape();
+bodyProfile.moveTo(-1.08, .28);
+bodyProfile.lineTo(-1.08, .62);
+bodyProfile.quadraticCurveTo(-1.06, .76, -.86, .79);
+bodyProfile.lineTo(-.55, .84);
+bodyProfile.lineTo(.48, .84);
+bodyProfile.lineTo(.86, .78);
+bodyProfile.quadraticCurveTo(1.08, .74, 1.08, .58);
+bodyProfile.lineTo(1.08, .28);
+bodyProfile.closePath();
+const sculptedBody = new THREE.Mesh(
+ new THREE.ExtrudeGeometry(bodyProfile, {depth:3.72, bevelEnabled:true, bevelSegments:3, steps:1, bevelSize:.055, bevelThickness:.055, curveSegments:8}),
+ new THREE.MeshStandardMaterial({color:0xb94d3b, roughness:.32, metalness:.42})
+);
+sculptedBody.position.set(0,.28,-1.86);
+sculptedBody.castShadow=true;sculptedBody.receiveShadow=true;vehicle.add(sculptedBody);
+for(const z of [-1.25,1.25]){
+ const bumper=new THREE.Mesh(new THREE.BoxGeometry(1.85,.13,.12),chrome);
+ bumper.position.set(0,.43,z);vehicle.add(bumper);
+}
+for(const x of [-.55,.55]){
+ const hoodLine=new THREE.Mesh(new THREE.BoxGeometry(.025,.012,1.0),chrome);
+ hoodLine.position.set(x,.92,-1.43);vehicle.add(hoodLine);
+}
+
 // Car detailing: wheel arches, side sills, mirrors, grille and a rear bumper for a less primitive silhouette.
 const chrome=mat(0xa8b7b8,.32,.78),rubber=mat(0x151a1d,.92),taillight=mat(0xe03b32,.32);
 box(vehicle,[2.28,.16,3.05],mat(0x4a4e4d),[0,.34,0]);
@@ -262,6 +288,34 @@ for(let i=0;i<8;i++){
  const axis=i%2?'x':'z', sign=i%4<2?1:-1;g.position.set(axis==='x'?-115+i*12:(i%2?4:-4),0,axis==='z'?-115+i*14:(i%2?4:-4));if(axis==='x'&&sign<0)g.rotation.y=Math.PI; if(axis==='z')g.rotation.y=sign>0?Math.PI/2:-Math.PI/2;
  traffic.push({g,speed:4.5+i%3,axis,sign,phase:i});
 }
+
+// Wanted-level response unit. It is a separate active entity, not a decorative HUD-only star.
+const policeCar = new THREE.Group();
+scene.add(policeCar);
+const policeNavy = mat(0x172c43,.38,.28);
+const policeWhite = mat(0xd9e0dc,.42,.12);
+box(policeCar,[2.02,.58,3.9],policeWhite,[0,.58,0]);
+box(policeCar,[1.72,.22,1.15],policeNavy,[0,.88,-1.22]);
+box(policeCar,[1.52,.58,1.9],glass,[0,1.05,.02]);
+box(policeCar,[1.7,.22,1.05],policeNavy,[0,.88,1.18]);
+for(const x of [-.91,.91])for(const z of [-1.25,1.25]){
+ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.18,14),rubber);
+ wheel.rotation.z=Math.PI/2;wheel.position.set(x,.32,z);wheel.castShadow=true;policeCar.add(wheel);
+ const hub=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.19,12),chrome);
+ hub.rotation.z=Math.PI/2;hub.position.set(x*1.005,.32,z);policeCar.add(hub);
+}
+const sirenRed = new THREE.MeshStandardMaterial({color:0xff3344,emissive:0xff1122,emissiveIntensity:0});
+const sirenBlue = new THREE.MeshStandardMaterial({color:0x328dff,emissive:0x126dff,emissiveIntensity:0});
+box(policeCar,[.72,.09,.24],mat(0x20272d,.3,.5),[0,1.43,-.08]);
+const redSiren = new THREE.Mesh(new THREE.BoxGeometry(.29,.13,.2),sirenRed);redSiren.position.set(-.22,1.51,-.08);policeCar.add(redSiren);
+const blueSiren = new THREE.Mesh(new THREE.BoxGeometry(.29,.13,.2),sirenBlue);blueSiren.position.set(.22,1.51,-.08);policeCar.add(blueSiren);
+const policeStripe = new THREE.Mesh(new THREE.BoxGeometry(2.035,.13,2.5),policeNavy);policeStripe.position.set(0,.67,.12);policeCar.add(policeStripe);
+for(const x of [-.65,.65]){
+ const headlamp=new THREE.Mesh(new THREE.BoxGeometry(.3,.13,.045),new THREE.MeshStandardMaterial({color:0xe7f4ff,emissive:0x9ab9d8,emissiveIntensity:.7}));
+ headlamp.position.set(x,.68,-1.98);policeCar.add(headlamp);
+}
+policeCar.visible=false;
+policeCar.position.set(140,0,140);
 
 const keys=new Set<string>();const acts=new Set<Act>();let mode:Mode='menu';let driving=false,health=100,armor=50,money=1250,wanted=0,ammo=36,mag=12,weapon='SIDEARM',shootCooldown=0,missionStage=0,missionActive=false,missionDone=false, toastTime=0,clock=0,dayTime=.27, speedCar=0, velocity=new THREE.Vector3(),jumpV=0,onGround=true,fireHeld=false,dead=false,nitro=100,vehicleHealth=100,collisionCooldown=0;
 const saveKey='coastal-outlaws-save-v1';
@@ -406,7 +460,7 @@ function refreshHUD(){
  el('hint').innerHTML=driving?'PRESS <b>E</b> TO EXIT &nbsp; · &nbsp; <b>W A S D</b> DRIVE &nbsp; · &nbsp; <b>SPACE</b> BRAKE &nbsp; · &nbsp; <b>SHIFT</b> BOOST':'PRESS <b>W A S D</b> TO MOVE &nbsp; · &nbsp; <b>E</b> INTERACT &nbsp; · &nbsp; <b>F</b> CONTRACT';
  el('crosshair').classList.toggle('hidden',!fireHeld&&!keys.has('KeyK'));
 }
-let saveTimer=0,policeTimer=0,refreshTimer=0,fireWasHeld=false;
+let saveTimer=0,policeTimer=0,policeHitCooldown=0,refreshTimer=0,fireWasHeld=false;
 function update(dt:number){
  clock+=dt;shootCooldown=Math.max(0,shootCooldown-dt);collisionCooldown=Math.max(0,collisionCooldown-dt);if(toastTime>0){toastTime-=dt;if(toastTime<=0)el('toast').classList.remove('show');}
  if(mode!=='playing')return;
@@ -467,9 +521,45 @@ function update(dt:number){
   if(t.axis==='x'&&Math.abs(t.g.position.x)>128)t.g.position.x=-128*Math.sign(t.g.position.x);
   if(t.axis==='z'&&Math.abs(t.g.position.z)>128)t.g.position.z=-128*Math.sign(t.g.position.z);
  }
- // Tiny pursuit loop, deliberately scoped to lightweight ambient police pressure.
- if(wanted>0){policeTimer+=dt;if(policeTimer>13){wanted=Math.max(0,wanted-1);policeTimer=0;toast(wanted?'POLICE SEARCH CONTINUES':'YOU LOST THE PURSUIT');}}
- else policeTimer=0;
+ // Active wanted response: a patrol unit spawns behind the player and attempts to intercept.
+ policeHitCooldown=Math.max(0,policeHitCooldown-dt);
+ if(wanted>0){
+  if(!policeCar.visible){
+   const target=driving?vehicle:player;
+   const forward=new THREE.Vector3(Math.sin(target.rotation.y),0,Math.cos(target.rotation.y));
+   policeCar.position.copy(target.position).addScaledVector(forward,-27);
+   policeCar.position.y=0;
+   policeCar.rotation.y=target.rotation.y;
+   policeCar.visible=true;
+   toast('POLICE DISPATCHED — BREAK LINE OF SIGHT');
+  }
+  const target=driving?vehicle:player;
+  const delta=target.position.clone().sub(policeCar.position);delta.y=0;
+  const distance=delta.length();
+  if(distance>0.01){
+   const desiredYaw=Math.atan2(delta.x,delta.z);
+   policeCar.rotation.y=THREE.MathUtils.dampAngle(policeCar.rotation.y,desiredYaw,2.8,dt);
+   const pursuitSpeed=7.5+wanted*1.35;
+   policeCar.position.addScaledVector(new THREE.Vector3(Math.sin(policeCar.rotation.y),0,Math.cos(policeCar.rotation.y)),pursuitSpeed*dt);
+   policeCar.position.x=THREE.MathUtils.clamp(policeCar.position.x,-128,128);
+   policeCar.position.z=THREE.MathUtils.clamp(policeCar.position.z,-128,128);
+  }
+  const flash=Math.sin(clock*15)>0;
+  sirenRed.emissiveIntensity=flash?2.8:.12;sirenBlue.emissiveIntensity=flash?.12:2.8;
+  if(distance<3.8&&policeHitCooldown<=0){
+   policeHitCooldown=2.4;
+   if(driving){vehicleHealth=Math.max(0,vehicleHealth-8);speedCar*=.55;}
+   else{const absorbed=Math.min(armor,12);armor-=absorbed;health=Math.max(0,health-(12-absorbed));}
+   toast(driving?'POLICE RAM — VEHICLE DAMAGED':'POLICE TACKLE — ESCAPE THE PURSUIT');
+   refreshHUD();
+  }
+  // The search cools down only while the unit is far away, so staying beside police is risky.
+  if(distance>32){policeTimer+=dt;if(policeTimer>13){wanted=Math.max(0,wanted-1);policeTimer=0;toast(wanted?'POLICE SEARCH IS LOSING YOUR TRAIL':'YOU LOST THE PURSUIT');}}
+  else policeTimer=0;
+  if(wanted===0){policeCar.visible=false;sirenRed.emissiveIntensity=0;sirenBlue.emissiveIntensity=0;}
+ }else{
+  policeTimer=0;policeCar.visible=false;sirenRed.emissiveIntensity=0;sirenBlue.emissiveIntensity=0;
+ }
  if(missionActive&&missionStage===1&&dist2(player.position,new THREE.Vector3(18,0,-98))<7){missionStage=2;toast('PARCEL FOUND. PRESS F TO COLLECT IT.');}
  if(missionActive&&missionStage===2&&dist2(player.position,new THREE.Vector3(-41,0,-40))<7){toastTime=Math.max(toastTime,.05);}
  saveTimer+=dt;if(saveTimer>30){saveTimer=0;try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,nitro,vehicleHealth,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}}
