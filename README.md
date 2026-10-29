@@ -71,6 +71,12 @@ The production output is in `dist/`.
 
 Click inside the game canvas to capture the mouse on desktop. Press Escape to pause and release the pointer. Browser audio is not required for the current build.
 
+## Cross-device reliability notes
+
+The coastal shoreline dressing uses deterministic placement so key scenery stays consistent between launches. Input state is cleared when the window loses focus, touch-stick pointer capture is released safely, and rendering stops while the page is hidden. The renderer also pauses on WebGL context loss and resumes after the browser restores the context. Mobile render resolution and shadow quality are capped to avoid the most expensive desktop settings on small devices.
+
+These lifecycle safeguards are covered by source-level and CI checks; they are not a substitute for hands-on testing on a range of real Android devices. Performance varies with the device GPU, browser, thermal state, and selected quality setting.
+
 ## GitHub Pages deployment
 
 The workflow at `.github/workflows/deploy.yml` runs on every push to `main` and on manual dispatch. It installs dependencies, type-checks, builds, and deploys `dist/` through GitHub Pages.
