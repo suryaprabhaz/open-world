@@ -144,7 +144,12 @@ for(let ix=-2;ix<=2;ix++)for(let iz=-2;iz<=2;iz++){
  if(seed%2===0)building(x+8,z+20,9,13,7+(seed%3)*2,seed+4);
  for(let p=0;p<2;p++)palm(x+12+p*16,z+7+(p%2)*2,.68+((seed+p)%3)*.1);
 }
-for(let i=0;i<22;i++){palm(8+Math.random()*26,-122+i*11,.78+Math.random()*.35);}
+// Stable shoreline dressing: repeatable coordinates keep the world consistent across launches.
+for(let i=0;i<22;i++){
+ const offset=((i*17)%23)-11;
+ const scale=.78+((i*7)%9)*.04;
+ palm(21+offset,-122+i*11,scale);
+}
 for(let i=0;i<12;i++){palm(3+i*2.5,123,.9);}
 
 for(let i=0;i<9;i++){
@@ -411,9 +416,13 @@ el<HTMLInputElement>('sensitivity').addEventListener('input',e=>cameraSensitivit
 el<HTMLInputElement>('touch-option').addEventListener('change',e=>el('mobile-controls').classList.toggle('hidden',!(e.target as HTMLInputElement).checked));
 let cameraSensitivity=1;let cameraDistance=7.6;let cameraYaw=0;let cameraPitch=.24;let pointerDown=false,lastX=0,lastY=0;
 function applyQuality(){
- const q=settings.quality;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='performance'?1:q==='high'?2:1.5));
- sun.castShadow=q!=='performance';sun.shadow.mapSize.set(q==='high'?2048:1024,q==='high'?2048:1024);
- if(scene.fog instanceof THREE.FogExp2) scene.fog.density=q==='performance'?.0055:q==='high'?.0033:.0042;
+ const q=settings.quality;
+ const mobile=isTouch();
+ const pixelRatioCap=q==='performance'?1:q==='high'?(mobile?1.35:1.75):(mobile?1.15:1.4);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,pixelRatioCap));
+ sun.castShadow=q!=='performance';
+ sun.shadow.mapSize.set(q==='high'&&!mobile?1536:1024,q==='high'&&!mobile?1536:1024);
+ if(scene.fog instanceof THREE.FogExp2)scene.fog.density=q==='performance'?.0055:q==='high'?.0033:.0042;
  renderer.setSize(innerWidth,innerHeight);
 }
 el('controls-modal').addEventListener('click',e=>{if(e.target===el('controls-modal'))hide('controls-modal')});
@@ -437,6 +446,10 @@ document.addEventListener('keydown',e=>{
  if(e.code==='KeyG')cameraDistance=cameraDistance===7.6?11.5:7.6;
 });
 document.addEventListener('keyup',e=>{keys.delete(e.code);});
+window.addEventListener('blur',()=>{
+ keys.clear();acts.clear();fireHeld=false;stickPointer=null;stickX=0;stickY=0;
+ knob.style.transform='translate(-50%,-50%)';
+});
 const touchAct=(id:string,act:Act)=>{const b=el<HTMLButtonElement>(id);const on=(e:Event)=>{e.preventDefault();acts.add(act);};const off=(e:Event)=>{e.preventDefault();acts.delete(act);};b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,off));};
 touchAct('touch-jump','jump');touchAct('touch-sprint','sprint');touchAct('touch-fire','fire');touchAct('touch-enter','interact');
 el('touch-interact').addEventListener('click',interact);el('touch-pause').addEventListener('click',()=>setMode('paused'));
@@ -446,7 +459,9 @@ const stick=el<HTMLDivElement>('stick'),knob=el<HTMLDivElement>('stick-knob');
 stick.addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);});
 stick.addEventListener('pointermove',e=>{if(stickPointer===e.pointerId)updateStick(e);});
 const resetStick=()=>{stickPointer=null;stickX=0;stickY=0;knob.style.transform='translate(-50%,-50%)';};
-stick.addEventListener('pointerup',resetStick);stick.addEventListener('pointercancel',resetStick);
+stick.addEventListener('pointerup',resetStick);
+stick.addEventListener('pointercancel',resetStick);
+stick.addEventListener('lostpointercapture',resetStick);
 function updateStick(e:PointerEvent){const r=stick.getBoundingClientRect();let x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),lim=r.width*.34;const len=Math.hypot(x,y);if(len>lim){x=x/len*lim;y=y/len*lim;}stickX=x/lim;stickY=y/lim;knob.style.transform=`translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;}
 function down(a:Act){return acts.has(a)||({forward:keys.has('KeyW')||keys.has('ArrowUp'),back:keys.has('KeyS')||keys.has('ArrowDown'),left:keys.has('KeyA')||keys.has('ArrowLeft'),right:keys.has('KeyD')||keys.has('ArrowRight'),sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),jump:keys.has('Space'),interact:false,fire:fireHeld||keys.has('KeyK'),brake:keys.has('Space')} as Record<Act,boolean>)[a];}
 let hornContext:AudioContext|null=null;
@@ -616,23 +631,55 @@ function updateCamera(dt:number){
  camera.position.lerp(camPos,1-Math.exp(-dt*5));camera.lookAt(camTarget);
 }
 let last=performance.now();
+let frameHandle=0;
+let contextLost=false;
 function frame(now:number){
- requestAnimationFrame(frame);
+ if(document.hidden||contextLost)return;
+ frameHandle=requestAnimationFrame(frame);
  const dt=Math.min(.04,Math.max(0,(now-last)/1000));last=now;
  update(dt);
- const stickMove= Math.hypot(stickX,stickY);
+ const stickMove=Math.hypot(stickX,stickY);
  if(mode==='playing'&&stickMove>.08){
   if(!driving){cameraYaw+=stickX*dt*1.7*cameraSensitivity;cameraPitch=THREE.MathUtils.clamp(cameraPitch+stickY*dt*.7,-.13,.7);}
   else {if(stickX>.1)keys.add('KeyD');else keys.delete('KeyD');if(stickX<-.1)keys.add('KeyA');else keys.delete('KeyA');if(stickY<-.12)keys.add('KeyW');else keys.delete('KeyW');if(stickY>.2)keys.add('KeyS');else keys.delete('KeyS');}
  }
+ // Rendering while paused is still needed for the menu/camera, but cap background
+ // work completely when the page is hidden or WebGL is unavailable.
  updateCamera(dt);
  renderer.render(scene,camera);
 }
-requestAnimationFrame(frame);
+function startFrame(){
+ if(document.hidden||contextLost||frameHandle)return;
+ last=performance.now();
+ frameHandle=requestAnimationFrame(frame);
+}
+function stopFrame(){
+ if(frameHandle){cancelAnimationFrame(frameHandle);frameHandle=0;}
+}
+startFrame();
 
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,settings.quality==='performance'?1:settings.quality==='high'?2:1.5));drawRadar();}
-window.addEventListener('resize',resize);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing'){setMode('paused');}});
+function resize(){
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,settings.quality==='performance'?1:settings.quality==='high'?1.75:1.35));
+ drawRadar();
+}
+window.addEventListener('resize',resize,{passive:true});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){
+  stopFrame();
+  keys.clear();acts.clear();fireHeld=false;stickPointer=null;stickX=0;stickY=0;
+  if(mode==='playing')setMode('paused');
+ }else startFrame();
+});
+renderer.domElement.addEventListener('webglcontextlost',event=>{
+ event.preventDefault();contextLost=true;stopFrame();setMode('paused');
+ toast('GRAPHICS PAUSED — RESTORE THE BROWSER TAB TO CONTINUE');
+});
+renderer.domElement.addEventListener('webglcontextrestored',()=>{
+ contextLost=false;resize();startFrame();toast('GRAPHICS RESTORED');
+});
 window.addEventListener('beforeunload',()=>{try{localStorage.setItem(saveKey,JSON.stringify({v:1,money,health,armor,ammo,mag,missionStage,missionDone,dayTime,nitro,vehicleHealth,position:player.position.toArray(),vehicle:vehicle.position.toArray(),settings}));}catch{}});
 function addMissionMarker(){
  const g=new THREE.Group();g.position.set(-41,0,-40);scene.add(g);
