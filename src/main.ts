@@ -9,13 +9,15 @@ scene.background = new THREE.Color(0x9bbfc4);
 scene.fog = new THREE.FogExp2(0x9bbfc4, 0.0042);
 const camera = new THREE.PerspectiveCamera(66, innerWidth/innerHeight, 0.1, 700);
 const renderer = new THREE.WebGLRenderer({antialias: true, powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio, matchMedia('(pointer: coarse)').matches ? 1.15 : 1.5));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !matchMedia('(pointer: coarse)').matches;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.12;
+renderer.domElement.setAttribute('aria-label','Coastal Outlaws 3D game canvas');
+renderer.domElement.setAttribute('role','application');
 app.appendChild(renderer.domElement);
 
 const hemi = new THREE.HemisphereLight(0xc4e8ff, 0x65584d, 2.0); scene.add(hemi);
@@ -391,6 +393,12 @@ function setMode(next:Mode){
  if(next==='menu'){show('main-menu');hide('hud');hide('pause-modal');}
  if(next==='playing'){hide('main-menu');hide('pause-modal');hide('settings-modal');hide('controls-modal');show('hud');}
  if(next==='paused'){show('pause-modal');}
+ if(next!=='playing'){
+  keys.clear();acts.clear();fireHeld=false;fireWasHeld=false;
+  stickPointer=null;stickX=0;stickY=0;
+  const knob=overlay.querySelector<HTMLElement>('#stick-knob');
+  if(knob)knob.style.transform='translate(-50%,-50%)';
+ }
  document.exitPointerLock?.();
 }
 function freshGame(){
